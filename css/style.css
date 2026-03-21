@@ -221,14 +221,23 @@ body {
 }
 .quiz-body {
   flex: 1; padding: 20px; display: flex; flex-direction: column;
+  overflow-y: auto; -webkit-overflow-scrolling: touch;
 }
 .quiz-category {
   font-size: 0.75rem; font-weight: 600; color: var(--primary-light);
   text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
 }
 .quiz-question {
-  font-size: 1.2rem; font-weight: 700; line-height: 1.5;
-  margin-bottom: 24px; min-height: 80px;
+  font-size: 1.1rem; font-weight: 700; line-height: 1.5;
+  margin-bottom: 20px;
+}
+.quiz-question img {
+  max-width: 100%; height: auto; border-radius: 8px;
+  margin: 8px 0; display: block;
+}
+.quiz-question code {
+  background: rgba(255,255,255,0.1); padding: 2px 6px;
+  border-radius: 4px; font-size: 0.9em;
 }
 .quiz-answer-area { flex: 1; }
 .quiz-footer {
@@ -241,9 +250,17 @@ body {
   background: var(--bg-card); color: var(--text);
   border: 2px solid transparent; border-radius: var(--radius-sm);
   padding: 14px 16px; margin-bottom: 10px;
-  font-family: inherit; font-size: 0.95rem;
+  font-family: inherit; font-size: 0.9rem;
   text-align: left; cursor: pointer; transition: all 0.2s;
-  line-height: 1.4;
+  line-height: 1.4; word-break: break-word;
+}
+.option-btn img {
+  max-width: 100%; height: auto; border-radius: 6px;
+  margin: 4px 0; display: block;
+}
+.option-btn code {
+  background: rgba(255,255,255,0.1); padding: 1px 4px;
+  border-radius: 3px; font-size: 0.85em;
 }
 .option-btn:hover { background: var(--bg-card-hover); border-color: var(--primary); }
 .option-btn:active { transform: scale(0.98); }
@@ -320,7 +337,13 @@ body {
 .feedback-overlay.incorrect .feedback-content { background: #3d1a0a; }
 .feedback-icon { font-size: 1.5rem; margin-bottom: 4px; }
 .feedback-text { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
-.feedback-answer { font-size: 0.9rem; color: var(--text-dim); line-height: 1.4; }
+.feedback-answer {
+  font-size: 0.9rem; color: var(--text-dim); line-height: 1.4;
+  max-height: 40vh; overflow-y: auto; word-break: break-word;
+}
+.feedback-answer img {
+  max-width: 100%; height: auto; border-radius: 6px; margin: 6px 0;
+}
 .feedback-content .btn-next {
   margin-top: 16px; width: 100%;
 }

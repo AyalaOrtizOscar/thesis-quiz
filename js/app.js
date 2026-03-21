@@ -306,8 +306,8 @@ function renderQuestion() {
 
 function chooseMode(q) {
   if (q.type === 'true_false') return 'true_false';
-  if (q.type === 'vocab' && q.answer.length < 40) {
-    // Short answers: 50% multiple choice, 50% type
+  if (q.type === 'image') return 'multiple_choice';  // images: always MC
+  if (q.type === 'vocab' && q.answer.replace(/<[^>]+>/g, '').length < 40) {
     return Math.random() < 0.5 ? 'multiple_choice' : 'type';
   }
   if (q.type === 'concept') return 'multiple_choice';
@@ -317,11 +317,12 @@ function chooseMode(q) {
 
 // ── Multiple choice ───────────────────────────────────────
 function renderMultipleChoice(q, area, checkBtn) {
-  document.getElementById('quiz-question').textContent = q.question;
+  document.getElementById('quiz-question').innerHTML = q.question;
 
-  // Generate distractors from same category
+  // Generate distractors from same category (strip HTML for length comparison)
+  const plainLen = s => s.replace(/<[^>]+>/g, '').length;
   const sameCat = allQuestions.filter(
-    x => x.category === q.category && x.id !== q.id && x.answer.length < 150
+    x => x.category === q.category && x.id !== q.id && plainLen(x.answer) < 300
   );
   shuffle(sameCat);
 
@@ -334,7 +335,7 @@ function renderMultipleChoice(q, area, checkBtn) {
   // If not enough, add from other categories
   if (options.length < 4) {
     const others = allQuestions.filter(
-      x => x.id !== q.id && x.answer.length < 150 && !options.includes(x.answer)
+      x => x.id !== q.id && plainLen(x.answer) < 300 && !options.includes(x.answer)
     );
     shuffle(others);
     for (const d of others) {
@@ -349,7 +350,7 @@ function renderMultipleChoice(q, area, checkBtn) {
   options.forEach(opt => {
     const btn = document.createElement('button');
     btn.className = 'option-btn';
-    btn.textContent = opt.length > 120 ? opt.slice(0, 120) + '...' : opt;
+    btn.innerHTML = opt;  // Full content with HTML (images, bold, code)
     btn.dataset.answer = opt;
     btn.addEventListener('click', () => {
       area.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
@@ -381,7 +382,7 @@ function checkMultipleChoice(q) {
 
 // ── True/False ────────────────────────────────────────────
 function renderTrueFalse(q, area, checkBtn) {
-  document.getElementById('quiz-question').textContent = q.question;
+  document.getElementById('quiz-question').innerHTML = q.question;
 
   area.innerHTML = '';
   ['Verdadero', 'Falso'].forEach(opt => {
@@ -419,7 +420,7 @@ function renderTrueFalse(q, area, checkBtn) {
 
 // ── Type answer ───────────────────────────────────────────
 function renderTypeAnswer(q, area, checkBtn) {
-  document.getElementById('quiz-question').textContent = q.question;
+  document.getElementById('quiz-question').innerHTML = q.question;
 
   area.innerHTML = `<input type="text" class="answer-input" id="type-input"
     placeholder="Escribe tu respuesta..." autocomplete="off" spellcheck="false">`;
@@ -599,9 +600,9 @@ function showFeedback(isCorrect, correctAnswer) {
   const answer = document.getElementById('feedback-answer');
 
   overlay.className = 'feedback-overlay show ' + (isCorrect ? 'correct' : 'incorrect');
-  icon.textContent = isCorrect ? '&#10004;' : '&#10008;';
+  icon.innerHTML = isCorrect ? '&#10004;' : '&#10008;';
   text.textContent = isCorrect ? 'Correcto!' : 'Incorrecto';
-  answer.textContent = isCorrect ? '' : 'Respuesta: ' + correctAnswer;
+  answer.innerHTML = isCorrect ? '' : 'Respuesta: ' + correctAnswer;
 }
 
 function hideFeedback() {
