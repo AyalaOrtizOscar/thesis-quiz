@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#6C5CE7">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>ThesisQuiz</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- Splash screen -->
+    <div id="splash" class="screen active">
+      <div class="splash-content">
+        <div class="logo-icon">&#127891;</div>
+        <h1>ThesisQuiz</h1>
+        <p>Tu entrenador personal de conocimiento</p>
+        <div class="loading-bar"><div class="loading-fill"></div></div>
+      </div>
+    </div>
+
+    <!-- Home screen -->
+    <div id="home" class="screen">
+      <header class="home-header">
+        <div class="streak-badge" id="streak-badge">
+          <span class="streak-icon">&#128293;</span>
+          <span id="streak-count">0</span>
+        </div>
+        <h2 class="home-title">ThesisQuiz</h2>
+        <div class="xp-badge">
+          <span class="xp-icon">&#11088;</span>
+          <span id="total-xp">0</span> XP
+        </div>
+      </header>
+
+      <div class="home-body">
+        <!-- Daily progress -->
+        <div class="daily-card">
+          <div class="daily-header">
+            <h3>Objetivo diario</h3>
+            <span id="daily-progress-text">0/10</span>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="daily-progress-bar"></div>
+          </div>
+          <button class="btn-primary btn-start" id="btn-daily">
+            &#9889; Quiz diario
+          </button>
+        </div>
+
+        <!-- Categories -->
+        <div class="section-title">Categorias</div>
+        <div class="categories-grid" id="categories-grid">
+          <!-- Rendered by JS -->
+        </div>
+
+        <!-- Stats -->
+        <div class="section-title">Estadisticas</div>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-value" id="stat-total">0</div>
+            <div class="stat-label">Cards totales</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-mastered">0</div>
+            <div class="stat-label">Dominadas</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-due">0</div>
+            <div class="stat-label">Pendientes hoy</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-value" id="stat-accuracy">0%</div>
+            <div class="stat-label">Precision</div>
+          </div>
+        </div>
+
+        <!-- Review mistakes -->
+        <button class="btn-secondary" id="btn-review" style="display:none">
+          &#128260; Repasar errores (<span id="review-count">0</span>)
+        </button>
+      </div>
+    </div>
+
+    <!-- Quiz screen -->
+    <div id="quiz" class="screen">
+      <header class="quiz-header">
+        <button class="btn-icon" id="btn-quit">&#10005;</button>
+        <div class="quiz-progress">
+          <div class="quiz-progress-fill" id="quiz-progress-bar"></div>
+        </div>
+        <div class="quiz-xp" id="quiz-xp">+0 XP</div>
+      </header>
+
+      <div class="quiz-body">
+        <div class="quiz-category" id="quiz-category"></div>
+        <div class="quiz-question" id="quiz-question"></div>
+
+        <!-- Answer area (changes based on question type) -->
+        <div class="quiz-answer-area" id="quiz-answer-area">
+          <!-- Rendered by JS -->
+        </div>
+      </div>
+
+      <div class="quiz-footer">
+        <button class="btn-primary btn-check" id="btn-check" disabled>Verificar</button>
+        <button class="btn-primary btn-next" id="btn-next" style="display:none">Continuar</button>
+      </div>
+
+      <!-- Feedback overlay -->
+      <div class="feedback-overlay" id="feedback-overlay">
+        <div class="feedback-content" id="feedback-content">
+          <div class="feedback-icon" id="feedback-icon"></div>
+          <div class="feedback-text" id="feedback-text"></div>
+          <div class="feedback-answer" id="feedback-answer"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results screen -->
+    <div id="results" class="screen">
+      <div class="results-content">
+        <div class="results-icon">&#127942;</div>
+        <h2>Sesion completada!</h2>
+        <div class="results-xp" id="results-xp">+0 XP</div>
+
+        <div class="results-stats">
+          <div class="result-stat">
+            <div class="result-stat-value" id="result-correct">0</div>
+            <div class="result-stat-label">Correctas</div>
+          </div>
+          <div class="result-stat">
+            <div class="result-stat-value" id="result-total">0</div>
+            <div class="result-stat-label">Total</div>
+          </div>
+          <div class="result-stat">
+            <div class="result-stat-value" id="result-accuracy">0%</div>
+            <div class="result-stat-label">Precision</div>
+          </div>
+        </div>
+
+        <div class="results-streak" id="results-streak"></div>
+
+        <button class="btn-primary" id="btn-home">Volver al inicio</button>
+        <button class="btn-secondary" id="btn-again">Otra ronda</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/spaced-rep.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
