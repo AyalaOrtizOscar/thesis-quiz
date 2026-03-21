@@ -1,13 +1,13 @@
-const CACHE_NAME = 'thesisquiz-v1';
+const CACHE_NAME = 'thesisquiz-v2';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/css/style.css',
-  '/js/app.js',
-  '/js/spaced-rep.js',
-  '/data/questions.json',
-  '/manifest.json',
-  '/icons/icon.svg'
+  './',
+  './index.html',
+  './css/style.css',
+  './js/app.js',
+  './js/spaced-rep.js',
+  './data/questions.json',
+  './manifest.json',
+  './icons/icon.svg'
 ];
 
 // Install: cache all assets
@@ -47,7 +47,7 @@ self.addEventListener('fetch', (event) => {
       })
       .catch(() => {
         if (event.request.destination === 'document') {
-          return caches.match('/index.html');
+          return caches.match('./index.html');
         }
       })
   );

@@ -2,7 +2,7 @@
   "name": "ThesisQuiz - Entrenador de Conocimiento",
   "short_name": "ThesisQuiz",
   "description": "App de aprendizaje estilo Duolingo para tesis de investigacion",
-  "start_url": "/",
+  "start_url": "./",
   "display": "standalone",
   "background_color": "#1a1a2e",
   "theme_color": "#6C5CE7",
