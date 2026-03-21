@@ -284,14 +284,13 @@ function renderQuestion() {
   const mode = chooseMode(q);
   const area = document.getElementById('quiz-answer-area');
   const checkBtn = document.getElementById('btn-check');
-  const nextBtn = document.getElementById('btn-next');
   const feedback = document.getElementById('feedback-overlay');
 
+  document.getElementById('quiz-footer').style.display = 'block';
   checkBtn.style.display = 'block';
   checkBtn.disabled = true;
   checkBtn.className = 'btn-primary btn-check';
   checkBtn.textContent = 'Verificar';
-  nextBtn.style.display = 'none';
   feedback.className = 'feedback-overlay';
 
   if (mode === 'multiple_choice') {
@@ -581,18 +580,14 @@ function handleAnswer(q, isCorrect) {
     userState.lastActiveDate = today;
   }
 
-  // Show feedback
+  // Show feedback overlay (includes continue button)
   showFeedback(isCorrect, q.answer);
 
   // Update XP display
   document.getElementById('quiz-xp').textContent = '+' + session.xp + ' XP';
 
-  // Switch buttons
-  document.getElementById('btn-check').style.display = 'none';
-  const nextBtn = document.getElementById('btn-next');
-  nextBtn.style.display = 'block';
-  nextBtn.className = 'btn-primary btn-next ' + (isCorrect ? 'correct' : 'incorrect');
-  nextBtn.textContent = 'Continuar';
+  // Hide footer, feedback overlay has the continue button
+  document.getElementById('quiz-footer').style.display = 'none';
 
   save();
 }

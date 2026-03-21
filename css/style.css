@@ -321,6 +321,11 @@ body {
 .feedback-icon { font-size: 1.5rem; margin-bottom: 4px; }
 .feedback-text { font-weight: 700; font-size: 1rem; margin-bottom: 4px; }
 .feedback-answer { font-size: 0.9rem; color: var(--text-dim); line-height: 1.4; }
+.feedback-content .btn-next {
+  margin-top: 16px; width: 100%;
+}
+.feedback-overlay.correct .btn-next { background: var(--success); }
+.feedback-overlay.incorrect .btn-next { background: var(--danger); }
 
 /* ── Results ──────────────────────────────────────────────── */
 .results-content {
