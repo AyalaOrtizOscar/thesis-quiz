@@ -2,6 +2,12 @@
  * app.js — ThesisQuiz main application
  */
 
+// ── Cloud Sync Config ─────────────────────────────────────
+// IMPORTANTE: Reemplaza esta URL con la de tu Google Apps Script desplegado
+const SYNC_URL = localStorage.getItem('tq_sync_url') || '';
+let syncEnabled = false;
+let lastSyncTime = null;
+
 // ── State ─────────────────────────────────────────────────
 let allQuestions = [];
 let cardStates = {};  // id -> SR card state
@@ -48,6 +54,8 @@ const XP_PERFECT_BONUS = 20;
 function save() {
   localStorage.setItem('tq_user', JSON.stringify(userState));
   localStorage.setItem('tq_cards', JSON.stringify(cardStates));
+  // Cloud sync (debounced, non-blocking)
+  debouncedCloudSave();
 }
 
 function load() {
@@ -59,6 +67,154 @@ function load() {
   } catch (e) {
     console.warn('Failed to load state:', e);
   }
+}
+
+// ── Cloud Sync ────────────────────────────────────────────
+let _saveTimer = null;
+function debouncedCloudSave() {
+  if (!syncEnabled) return;
+  clearTimeout(_saveTimer);
+  _saveTimer = setTimeout(() => cloudSave(), 3000); // 3s debounce
+}
+
+async function cloudSave() {
+  if (!syncEnabled || !SYNC_URL) return;
+  const pin = localStorage.getItem('tq_pin') || '';
+  try {
+    const resp = await fetch(SYNC_URL + '?action=save&pin=' + encodeURIComponent(pin), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userState, cardStates }),
+    });
+    const data = await resp.json();
+    if (data.ok) {
+      lastSyncTime = data.lastSync;
+      updateSyncIndicator('synced');
+      console.log('[Sync] Guardado en la nube:', lastSyncTime);
+    } else {
+      updateSyncIndicator('error');
+      console.warn('[Sync] Error:', data.error);
+    }
+  } catch (e) {
+    updateSyncIndicator('error');
+    console.warn('[Sync] Network error:', e);
+  }
+}
+
+async function cloudLoad() {
+  if (!SYNC_URL) return false;
+  const pin = localStorage.getItem('tq_pin') || '';
+  try {
+    updateSyncIndicator('syncing');
+    const resp = await fetch(SYNC_URL + '?action=load&pin=' + encodeURIComponent(pin));
+    const data = await resp.json();
+    if (data.ok) {
+      // Merge: cloud wins if it has more recent data
+      const cloudDate = data.userState?.lastActiveDate || '';
+      const localDate = userState.lastActiveDate || '';
+
+      if (cloudDate >= localDate) {
+        // Cloud is newer or equal — use cloud data
+        if (Object.keys(data.userState).length > 0) {
+          userState = { ...userState, ...data.userState };
+        }
+        if (Object.keys(data.cardStates).length > 0) {
+          cardStates = { ...cardStates, ...data.cardStates };
+        }
+        // Save merged data locally
+        localStorage.setItem('tq_user', JSON.stringify(userState));
+        localStorage.setItem('tq_cards', JSON.stringify(cardStates));
+        console.log('[Sync] Cargado de la nube. Fecha:', cloudDate);
+      } else {
+        // Local is newer — push to cloud
+        console.log('[Sync] Local mas reciente. Subiendo a la nube.');
+        cloudSave();
+      }
+      lastSyncTime = data.lastSync;
+      syncEnabled = true;
+      updateSyncIndicator('synced');
+      return true;
+    } else {
+      updateSyncIndicator('error');
+      console.warn('[Sync] Load error:', data.error);
+      return false;
+    }
+  } catch (e) {
+    updateSyncIndicator('offline');
+    console.warn('[Sync] Network error, usando datos locales:', e);
+    return false;
+  }
+}
+
+function updateSyncIndicator(status) {
+  const el = document.getElementById('sync-status');
+  if (!el) return;
+  const icons = {
+    synced: '&#9989;',   // green check
+    syncing: '&#8635;',  // refresh
+    error: '&#9888;',    // warning
+    offline: '&#9940;',  // no entry
+  };
+  el.innerHTML = icons[status] || '';
+  el.title = status === 'synced' ? 'Sincronizado' :
+             status === 'syncing' ? 'Sincronizando...' :
+             status === 'error' ? 'Error de sync' : 'Sin conexion';
+}
+
+// ── Login/Setup ───────────────────────────────────────────
+function isLoggedIn() {
+  return localStorage.getItem('tq_pin') && localStorage.getItem('tq_sync_url');
+}
+
+function showLogin() {
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+function hideLogin() {
+  document.getElementById('login-screen').style.display = 'none';
+}
+
+async function handleLogin() {
+  const urlInput = document.getElementById('login-url').value.trim();
+  const pinInput = document.getElementById('login-pin').value.trim();
+  const errorEl = document.getElementById('login-error');
+
+  if (!urlInput || !pinInput) {
+    errorEl.textContent = 'Ingresa la URL y el PIN';
+    return;
+  }
+
+  errorEl.textContent = 'Verificando...';
+
+  try {
+    const resp = await fetch(urlInput + '?action=load&pin=' + encodeURIComponent(pinInput));
+    const data = await resp.json();
+
+    if (data.ok) {
+      // Save credentials
+      localStorage.setItem('tq_sync_url', urlInput);
+      localStorage.setItem('tq_pin', pinInput);
+      // Update module-level URL
+      window.location.reload(); // Reload to pick up new SYNC_URL
+    } else {
+      errorEl.textContent = data.error || 'Error de autenticacion';
+    }
+  } catch (e) {
+    errorEl.textContent = 'No se pudo conectar. Verifica la URL.';
+  }
+}
+
+function handleSkipLogin() {
+  localStorage.setItem('tq_skip_login', 'true');
+  hideLogin();
+}
+
+function handleLogout() {
+  localStorage.removeItem('tq_pin');
+  localStorage.removeItem('tq_sync_url');
+  localStorage.removeItem('tq_skip_login');
+  syncEnabled = false;
+  window.location.reload();
 }
 
 // ── Date helpers ──────────────────────────────────────────
@@ -706,14 +862,40 @@ async function init() {
     navigator.serviceWorker.register('sw.js').catch(e => console.warn('SW:', e));
   }
 
+  // Load local data first
   load();
   await loadQuestions();
   initEvents();
 
-  // Splash -> Home after loading animation
+  // Setup login/sync events
+  const loginBtn = document.getElementById('btn-login');
+  if (loginBtn) loginBtn.addEventListener('click', handleLogin);
+  const skipBtn = document.getElementById('btn-skip-login');
+  if (skipBtn) skipBtn.addEventListener('click', handleSkipLogin);
+  const logoutBtn = document.getElementById('btn-logout');
+  if (logoutBtn) logoutBtn.addEventListener('click', handleLogout);
+  // Enter key on PIN input
+  const pinInput = document.getElementById('login-pin');
+  if (pinInput) pinInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') handleLogin();
+  });
+
+  // Try cloud sync if configured
+  if (SYNC_URL) {
+    syncEnabled = true;
+    await cloudLoad();
+  }
+
+  // Splash -> Home (or Login) after loading animation
   setTimeout(() => {
-    showScreen('home');
-    renderHome();
+    if (!isLoggedIn() && !localStorage.getItem('tq_skip_login')) {
+      showScreen('home');
+      renderHome();
+      showLogin();
+    } else {
+      showScreen('home');
+      renderHome();
+    }
   }, 1800);
 }
 

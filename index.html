@@ -17,6 +17,22 @@
 </head>
 <body>
   <div id="app">
+    <!-- Login overlay -->
+    <div id="login-screen" class="login-overlay" style="display:none">
+      <div class="login-card">
+        <div class="login-icon">&#9729;</div>
+        <h2>Sincronizar progreso</h2>
+        <p>Conecta con Google Apps Script para guardar tu progreso en la nube.</p>
+        <input type="url" id="login-url" class="login-input"
+          placeholder="URL del Apps Script desplegado">
+        <input type="password" id="login-pin" class="login-input"
+          placeholder="PIN (ej: 1234)">
+        <div class="login-error" id="login-error"></div>
+        <button class="btn-primary" id="btn-login">Conectar</button>
+        <button class="btn-text" id="btn-skip-login">Usar solo local</button>
+      </div>
+    </div>
+
     <!-- Splash screen -->
     <div id="splash" class="screen active">
       <div class="splash-content">
@@ -35,9 +51,12 @@
           <span id="streak-count">0</span>
         </div>
         <h2 class="home-title">ThesisQuiz</h2>
-        <div class="xp-badge">
-          <span class="xp-icon">&#11088;</span>
-          <span id="total-xp">0</span> XP
+        <div class="header-right">
+          <span class="sync-indicator" id="sync-status" title="Sync"></span>
+          <div class="xp-badge">
+            <span class="xp-icon">&#11088;</span>
+            <span id="total-xp">0</span> XP
+          </div>
         </div>
       </header>
 
@@ -87,6 +106,11 @@
         <button class="btn-secondary" id="btn-review" style="display:none">
           &#128260; Repasar errores (<span id="review-count">0</span>)
         </button>
+
+        <!-- Sync settings -->
+        <div class="sync-footer">
+          <button class="btn-text btn-small" id="btn-logout">Cerrar sesion nube</button>
+        </div>
       </div>
     </div>
 
